@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package user;
+
+import "github.com/metaverse/truss/deftree/googlethirdparty/annotations.proto";
+
+service User {
+  rpc Information(InformationRequest) returns (InformationResponse) {
+    option(google.api.http) = {
+      get: "/user/{id}"
+      body: "*"
+    };
+  }
+}
+
+message InformationRequest {
+  uint64 id = 1;
+}
+message InformationResponse {
+
+}
