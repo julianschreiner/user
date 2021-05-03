@@ -5,17 +5,93 @@ package user;
 import "github.com/metaverse/truss/deftree/googlethirdparty/annotations.proto";
 
 service User {
-  rpc Information(InformationRequest) returns (InformationResponse) {
+  rpc GetUserInformation(GetUserInformationRequest) returns (GetUserInformationResponse) {
     option(google.api.http) = {
       get: "/user/{id}"
       body: "*"
     };
   }
+
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option(google.api.http) = {
+      post: "/user"
+      body: "*"
+    };
+  }
+
+  rpc GetAllUserInformation(GetAllUserInformationRequest) returns (GetAllUserInformationResponse) {
+    option(google.api.http) = {
+      get: "/user"
+      body: "*"
+    };
+  }
+
+  rpc GetUserInformationEmail(GetUserInformationEmailRequest) returns (GetUserInformationEmailResponse) {
+    option(google.api.http) = {
+      get: "/user/{email}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option(google.api.http) = {
+      delete: "/user/{id}"
+      body: "*"
+    };
+  }
+  /* TODO UpdateUser */
 }
 
-message InformationRequest {
+message Client {
+  uint64 id = 1;
+  string email = 2;
+  bool active = 3;
+  uint64 role = 4;
+  string forename = 5;
+  string surname = 6;
+  string dob = 7;
+  string created_at = 8;
+}
+
+message GetUserInformationRequest {
   uint64 id = 1;
 }
-message InformationResponse {
+message GetUserInformationResponse {
+  Client user = 1;
+}
 
+message CreateUserRequest {
+  string email = 1;
+  string forename = 2;
+  string surname = 3;
+  string dob = 4;
+  uint64 role = 5;
+}
+
+message CreateUserResponse {
+  Client user = 1;
+}
+
+message GetAllUserInformationRequest {
+
+}
+
+message GetAllUserInformationResponse {
+  repeated Client users = 1;
+}
+
+message GetUserInformationEmailRequest {
+  string email = 1;
+}
+
+message GetUserInformationEmailResponse {
+  Client user = 1;
+}
+
+message DeleteUserRequest {
+  uint64 id = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
 }

@@ -40,7 +40,11 @@ type Endpoints struct {
 	httpResponseEncoders map[string]httptransport.EncodeResponseFunc
 	httpHandlerFuncs     map[string]func(http.ResponseWriter, *http.Request)
 
-	InformationEndpoint endpoint.Endpoint
+	GetUserInformationEndpoint      endpoint.Endpoint
+	CreateUserEndpoint              endpoint.Endpoint
+	GetAllUserInformationEndpoint   endpoint.Endpoint
+	GetUserInformationEmailEndpoint endpoint.Endpoint
+	DeleteUserEndpoint              endpoint.Endpoint
 }
 
 func NewEndpoints() Endpoints {
@@ -54,20 +58,96 @@ func NewEndpoints() Endpoints {
 
 // Endpoints
 
-func (e Endpoints) Information(ctx context.Context, in *pb.InformationRequest) (*pb.InformationResponse, error) {
-	response, err := e.InformationEndpoint(ctx, in)
+func (e Endpoints) GetUserInformation(ctx context.Context, in *pb.GetUserInformationRequest) (*pb.GetUserInformationResponse, error) {
+	response, err := e.GetUserInformationEndpoint(ctx, in)
 	if err != nil {
 		return nil, err
 	}
-	return response.(*pb.InformationResponse), nil
+	return response.(*pb.GetUserInformationResponse), nil
+}
+
+func (e Endpoints) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	response, err := e.CreateUserEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.CreateUserResponse), nil
+}
+
+func (e Endpoints) GetAllUserInformation(ctx context.Context, in *pb.GetAllUserInformationRequest) (*pb.GetAllUserInformationResponse, error) {
+	response, err := e.GetAllUserInformationEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetAllUserInformationResponse), nil
+}
+
+func (e Endpoints) GetUserInformationEmail(ctx context.Context, in *pb.GetUserInformationEmailRequest) (*pb.GetUserInformationEmailResponse, error) {
+	response, err := e.GetUserInformationEmailEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetUserInformationEmailResponse), nil
+}
+
+func (e Endpoints) DeleteUser(ctx context.Context, in *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+	response, err := e.DeleteUserEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.DeleteUserResponse), nil
 }
 
 // Make Endpoints
 
-func MakeInformationEndpoint(s pb.UserServer) endpoint.Endpoint {
+func MakeGetUserInformationEndpoint(s pb.UserServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(*pb.InformationRequest)
-		v, err := s.Information(ctx, req)
+		req := request.(*pb.GetUserInformationRequest)
+		v, err := s.GetUserInformation(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeCreateUserEndpoint(s pb.UserServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.CreateUserRequest)
+		v, err := s.CreateUser(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeGetAllUserInformationEndpoint(s pb.UserServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetAllUserInformationRequest)
+		v, err := s.GetAllUserInformation(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeGetUserInformationEmailEndpoint(s pb.UserServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetUserInformationEmailRequest)
+		v, err := s.GetUserInformationEmail(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeDeleteUserEndpoint(s pb.UserServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.DeleteUserRequest)
+		v, err := s.DeleteUser(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +162,11 @@ func MakeInformationEndpoint(s pb.UserServer) endpoint.Endpoint {
 // WrapAllExcept(middleware, "Status", "Ping")
 func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...string) {
 	included := map[string]struct{}{
-		"Information": {},
+		"GetUserInformation":      {},
+		"CreateUser":              {},
+		"GetAllUserInformation":   {},
+		"GetUserInformationEmail": {},
+		"DeleteUser":              {},
 	}
 
 	for _, ex := range excluded {
@@ -93,8 +177,20 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 	}
 
 	for inc := range included {
-		if inc == "Information" {
-			e.InformationEndpoint = middleware(e.InformationEndpoint)
+		if inc == "GetUserInformation" {
+			e.GetUserInformationEndpoint = middleware(e.GetUserInformationEndpoint)
+		}
+		if inc == "CreateUser" {
+			e.CreateUserEndpoint = middleware(e.CreateUserEndpoint)
+		}
+		if inc == "GetAllUserInformation" {
+			e.GetAllUserInformationEndpoint = middleware(e.GetAllUserInformationEndpoint)
+		}
+		if inc == "GetUserInformationEmail" {
+			e.GetUserInformationEmailEndpoint = middleware(e.GetUserInformationEmailEndpoint)
+		}
+		if inc == "DeleteUser" {
+			e.DeleteUserEndpoint = middleware(e.DeleteUserEndpoint)
 		}
 	}
 }
@@ -110,7 +206,11 @@ type LabeledMiddleware func(string, endpoint.Endpoint) endpoint.Endpoint
 // functionality.
 func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoint) endpoint.Endpoint, excluded ...string) {
 	included := map[string]struct{}{
-		"Information": {},
+		"GetUserInformation":      {},
+		"CreateUser":              {},
+		"GetAllUserInformation":   {},
+		"GetUserInformationEmail": {},
+		"DeleteUser":              {},
 	}
 
 	for _, ex := range excluded {
@@ -121,8 +221,20 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 	}
 
 	for inc := range included {
-		if inc == "Information" {
-			e.InformationEndpoint = middleware("Information", e.InformationEndpoint)
+		if inc == "GetUserInformation" {
+			e.GetUserInformationEndpoint = middleware("GetUserInformation", e.GetUserInformationEndpoint)
+		}
+		if inc == "CreateUser" {
+			e.CreateUserEndpoint = middleware("CreateUser", e.CreateUserEndpoint)
+		}
+		if inc == "GetAllUserInformation" {
+			e.GetAllUserInformationEndpoint = middleware("GetAllUserInformation", e.GetAllUserInformationEndpoint)
+		}
+		if inc == "GetUserInformationEmail" {
+			e.GetUserInformationEmailEndpoint = middleware("GetUserInformationEmail", e.GetUserInformationEmailEndpoint)
+		}
+		if inc == "DeleteUser" {
+			e.DeleteUserEndpoint = middleware("DeleteUser", e.DeleteUserEndpoint)
 		}
 	}
 }
@@ -134,7 +246,11 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 // WrapAllWithHttpOptionExcept(serverOption, "Status", "Ping")
 func (e *Endpoints) WrapAllWithHttpOptionExcept(serverOption httptransport.ServerOption, excluded ...string) {
 	included := map[string]struct{}{
-		"Information": {},
+		"GetUserInformation":      {},
+		"CreateUser":              {},
+		"GetAllUserInformation":   {},
+		"GetUserInformationEmail": {},
+		"DeleteUser":              {},
 	}
 
 	for _, ex := range excluded {

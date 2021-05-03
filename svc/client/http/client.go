@@ -50,19 +50,63 @@ func New(instance string, options ...httptransport.ClientOption) (pb.UserServer,
 	}
 	_ = u
 
-	var InformationZeroEndpoint endpoint.Endpoint
+	var GetUserInformationZeroEndpoint endpoint.Endpoint
 	{
-		InformationZeroEndpoint = httptransport.NewClient(
+		GetUserInformationZeroEndpoint = httptransport.NewClient(
 			"GET",
 			copyURL(u, "/user/"),
-			EncodeHTTPInformationZeroRequest,
-			DecodeHTTPInformationResponse,
+			EncodeHTTPGetUserInformationZeroRequest,
+			DecodeHTTPGetUserInformationResponse,
+			options...,
+		).Endpoint()
+	}
+	var CreateUserZeroEndpoint endpoint.Endpoint
+	{
+		CreateUserZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/user"),
+			EncodeHTTPCreateUserZeroRequest,
+			DecodeHTTPCreateUserResponse,
+			options...,
+		).Endpoint()
+	}
+	var GetAllUserInformationZeroEndpoint endpoint.Endpoint
+	{
+		GetAllUserInformationZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/user"),
+			EncodeHTTPGetAllUserInformationZeroRequest,
+			DecodeHTTPGetAllUserInformationResponse,
+			options...,
+		).Endpoint()
+	}
+	var GetUserInformationEmailZeroEndpoint endpoint.Endpoint
+	{
+		GetUserInformationEmailZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/user/"),
+			EncodeHTTPGetUserInformationEmailZeroRequest,
+			DecodeHTTPGetUserInformationEmailResponse,
+			options...,
+		).Endpoint()
+	}
+	var DeleteUserZeroEndpoint endpoint.Endpoint
+	{
+		DeleteUserZeroEndpoint = httptransport.NewClient(
+			"DELETE",
+			copyURL(u, "/user/"),
+			EncodeHTTPDeleteUserZeroRequest,
+			DecodeHTTPDeleteUserResponse,
 			options...,
 		).Endpoint()
 	}
 
 	endpoints := svc.NewEndpoints()
-	endpoints.InformationEndpoint = InformationZeroEndpoint
+	endpoints.GetUserInformationEndpoint = GetUserInformationZeroEndpoint
+	endpoints.CreateUserEndpoint = CreateUserZeroEndpoint
+	endpoints.GetAllUserInformationEndpoint = GetAllUserInformationZeroEndpoint
+	endpoints.GetUserInformationEmailEndpoint = GetUserInformationEmailZeroEndpoint
+	endpoints.DeleteUserEndpoint = DeleteUserZeroEndpoint
 
 	return endpoints, nil
 }
@@ -90,12 +134,12 @@ func CtxValuesToSend(keys ...string) httptransport.ClientOption {
 
 // HTTP Client Decode
 
-// DecodeHTTPInformationResponse is a transport/http.DecodeResponseFunc that decodes
-// a JSON-encoded InformationResponse response from the HTTP response body.
+// DecodeHTTPGetUserInformationResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetUserInformationResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
 // error and attempt to decode the specific error message from the response
 // body. Primarily useful in a client.
-func DecodeHTTPInformationResponse(_ context.Context, r *http.Response) (interface{}, error) {
+func DecodeHTTPGetUserInformationResponse(_ context.Context, r *http.Response) (interface{}, error) {
 	defer r.Body.Close()
 	buf, err := ioutil.ReadAll(r.Body)
 	if err == io.EOF {
@@ -109,7 +153,115 @@ func DecodeHTTPInformationResponse(_ context.Context, r *http.Response) (interfa
 		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
 	}
 
-	var resp pb.InformationResponse
+	var resp pb.GetUserInformationResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPCreateUserResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded CreateUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPCreateUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.CreateUserResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetAllUserInformationResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetAllUserInformationResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetAllUserInformationResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetAllUserInformationResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetUserInformationEmailResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetUserInformationEmailResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetUserInformationEmailResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetUserInformationEmailResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPDeleteUserResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded DeleteUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPDeleteUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.DeleteUserResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -119,13 +271,13 @@ func DecodeHTTPInformationResponse(_ context.Context, r *http.Response) (interfa
 
 // HTTP Client Encode
 
-// EncodeHTTPInformationZeroRequest is a transport/http.EncodeRequestFunc
-// that encodes a information request into the various portions of
+// EncodeHTTPGetUserInformationZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getuserinformation request into the various portions of
 // the http request (path, query, and body).
-func EncodeHTTPInformationZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+func EncodeHTTPGetUserInformationZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.InformationRequest)
+	req := request.(*pb.GetUserInformationRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -150,6 +302,169 @@ func EncodeHTTPInformationZeroRequest(_ context.Context, r *http.Request, reques
 	_ = tmp
 
 	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateUserZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a createuser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateUserZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.CreateUserRequest)
+
+	toRet.Email = req.Email
+
+	toRet.Forename = req.Forename
+
+	toRet.Surname = req.Surname
+
+	toRet.Dob = req.Dob
+
+	toRet.Role = req.Role
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPGetAllUserInformationZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getalluserinformation request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetAllUserInformationZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetAllUserInformationRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetUserInformationEmailZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getuserinformationemail request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetUserInformationEmailZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetUserInformationEmailRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		fmt.Sprint(req.Email),
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPDeleteUserZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a deleteuser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPDeleteUserZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.DeleteUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		fmt.Sprint(req.Id),
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.DeleteUserRequest)
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
 	return nil
 }
 

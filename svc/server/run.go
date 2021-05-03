@@ -60,11 +60,19 @@ func NewEndpoints(service pb.UserServer) svc.Endpoints {
 
 	// Endpoint domain.
 	var (
-		informationEndpoint = svc.MakeInformationEndpoint(service)
+		getuserinformationEndpoint      = svc.MakeGetUserInformationEndpoint(service)
+		createuserEndpoint              = svc.MakeCreateUserEndpoint(service)
+		getalluserinformationEndpoint   = svc.MakeGetAllUserInformationEndpoint(service)
+		getuserinformationemailEndpoint = svc.MakeGetUserInformationEmailEndpoint(service)
+		deleteuserEndpoint              = svc.MakeDeleteUserEndpoint(service)
 	)
 
 	endpoints := svc.NewEndpoints()
-	endpoints.InformationEndpoint = informationEndpoint
+	endpoints.GetUserInformationEndpoint = getuserinformationEndpoint
+	endpoints.CreateUserEndpoint = createuserEndpoint
+	endpoints.GetAllUserInformationEndpoint = getalluserinformationEndpoint
+	endpoints.GetUserInformationEmailEndpoint = getuserinformationemailEndpoint
+	endpoints.DeleteUserEndpoint = deleteuserEndpoint
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go
 	endpoints = handlers.WrapEndpoints(endpoints)

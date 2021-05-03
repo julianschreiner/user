@@ -55,14 +55,58 @@ func MakeHTTPHandler(endpoints Endpoints, options ...httptransport.ServerOption)
 	serverOptions = append(serverOptions, options...)
 	m := mux.NewRouter()
 
-	if endpoints.HasHttpHandlerFunc("Information") {
-		m.Methods("GET").Path("/user/{id}").HandlerFunc(endpoints.GetHttpHandlerFunc("Information"))
+	if endpoints.HasHttpHandlerFunc("GetUserInformation") {
+		m.Methods("GET").Path("/user/{id}").HandlerFunc(endpoints.GetHttpHandlerFunc("GetUserInformation"))
 	} else {
 		m.Methods("GET").Path("/user/{id}").Handler(httptransport.NewServer(
-			endpoints.InformationEndpoint,
-			endpoints.GetHttpRequestDecoder("Information", DecodeHTTPInformationZeroRequest),
-			endpoints.GetHttpResponseEncoder("Information", EncodeHTTPGenericResponse),
-			append(serverOptions, endpoints.GetHttpServerOptions("Information")...)...,
+			endpoints.GetUserInformationEndpoint,
+			endpoints.GetHttpRequestDecoder("GetUserInformation", DecodeHTTPGetUserInformationZeroRequest),
+			endpoints.GetHttpResponseEncoder("GetUserInformation", EncodeHTTPGenericResponse),
+			append(serverOptions, endpoints.GetHttpServerOptions("GetUserInformation")...)...,
+		))
+	}
+
+	if endpoints.HasHttpHandlerFunc("CreateUser") {
+		m.Methods("POST").Path("/user").HandlerFunc(endpoints.GetHttpHandlerFunc("CreateUser"))
+	} else {
+		m.Methods("POST").Path("/user").Handler(httptransport.NewServer(
+			endpoints.CreateUserEndpoint,
+			endpoints.GetHttpRequestDecoder("CreateUser", DecodeHTTPCreateUserZeroRequest),
+			endpoints.GetHttpResponseEncoder("CreateUser", EncodeHTTPGenericResponse),
+			append(serverOptions, endpoints.GetHttpServerOptions("CreateUser")...)...,
+		))
+	}
+
+	if endpoints.HasHttpHandlerFunc("GetAllUserInformation") {
+		m.Methods("GET").Path("/user").HandlerFunc(endpoints.GetHttpHandlerFunc("GetAllUserInformation"))
+	} else {
+		m.Methods("GET").Path("/user").Handler(httptransport.NewServer(
+			endpoints.GetAllUserInformationEndpoint,
+			endpoints.GetHttpRequestDecoder("GetAllUserInformation", DecodeHTTPGetAllUserInformationZeroRequest),
+			endpoints.GetHttpResponseEncoder("GetAllUserInformation", EncodeHTTPGenericResponse),
+			append(serverOptions, endpoints.GetHttpServerOptions("GetAllUserInformation")...)...,
+		))
+	}
+
+	if endpoints.HasHttpHandlerFunc("GetUserInformationEmail") {
+		m.Methods("GET").Path("/user/{email}").HandlerFunc(endpoints.GetHttpHandlerFunc("GetUserInformationEmail"))
+	} else {
+		m.Methods("GET").Path("/user/{email}").Handler(httptransport.NewServer(
+			endpoints.GetUserInformationEmailEndpoint,
+			endpoints.GetHttpRequestDecoder("GetUserInformationEmail", DecodeHTTPGetUserInformationEmailZeroRequest),
+			endpoints.GetHttpResponseEncoder("GetUserInformationEmail", EncodeHTTPGenericResponse),
+			append(serverOptions, endpoints.GetHttpServerOptions("GetUserInformationEmail")...)...,
+		))
+	}
+
+	if endpoints.HasHttpHandlerFunc("DeleteUser") {
+		m.Methods("DELETE").Path("/user/{id}").HandlerFunc(endpoints.GetHttpHandlerFunc("DeleteUser"))
+	} else {
+		m.Methods("DELETE").Path("/user/{id}").Handler(httptransport.NewServer(
+			endpoints.DeleteUserEndpoint,
+			endpoints.GetHttpRequestDecoder("DeleteUser", DecodeHTTPDeleteUserZeroRequest),
+			endpoints.GetHttpResponseEncoder("DeleteUser", EncodeHTTPGenericResponse),
+			append(serverOptions, endpoints.GetHttpServerOptions("DeleteUser")...)...,
 		))
 	}
 	return m
@@ -118,12 +162,12 @@ func (h httpError) Headers() http.Header {
 
 // Server Decode
 
-// DecodeHTTPInformationZeroRequest is a transport/http.DecodeRequestFunc that
-// decodes a JSON-encoded information request from the HTTP request
+// DecodeHTTPGetUserInformationZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getuserinformation request from the HTTP request
 // body. Primarily useful in a server.
-func DecodeHTTPInformationZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeHTTPGetUserInformationZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.InformationRequest
+	var req pb.GetUserInformationRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -151,12 +195,167 @@ func DecodeHTTPInformationZeroRequest(_ context.Context, r *http.Request) (inter
 	queryParams := r.URL.Query()
 	_ = queryParams
 
-	IdInformationStr := pathParams["id"]
-	IdInformation, err := strconv.ParseUint(IdInformationStr, 10, 64)
+	IdGetUserInformationStr := pathParams["id"]
+	IdGetUserInformation, err := strconv.ParseUint(IdGetUserInformationStr, 10, 64)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting IdInformation from path, pathParams: %v", pathParams))
+		return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting IdGetUserInformation from path, pathParams: %v", pathParams))
 	}
-	req.Id = IdInformation
+	req.Id = IdGetUserInformation
+
+	return &req, err
+}
+
+// DecodeHTTPCreateUserZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createuser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateUserZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := mux.Vars(r)
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPGetAllUserInformationZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getalluserinformation request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetAllUserInformationZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetAllUserInformationRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := mux.Vars(r)
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPGetUserInformationEmailZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getuserinformationemail request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetUserInformationEmailZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetUserInformationEmailRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := mux.Vars(r)
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	EmailGetUserInformationEmailStr := pathParams["email"]
+	EmailGetUserInformationEmail := EmailGetUserInformationEmailStr
+	req.Email = EmailGetUserInformationEmail
+
+	return &req, err
+}
+
+// DecodeHTTPDeleteUserZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded deleteuser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPDeleteUserZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.DeleteUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := mux.Vars(r)
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	IdDeleteUserStr := pathParams["id"]
+	IdDeleteUser, err := strconv.ParseUint(IdDeleteUserStr, 10, 64)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting IdDeleteUser from path, pathParams: %v", pathParams))
+	}
+	req.Id = IdDeleteUser
 
 	return &req, err
 }

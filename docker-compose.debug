@@ -25,8 +25,9 @@ services:
     working_dir: /home/app
     environment:
       DB_NAME: user
-      DB_USER: asd
-      DB_PW:
+      DB_USER: user
+      DB_SECRET: 3GkB8VL0lJaKApDP
+      DB_HOST: db-uas
     networks:
       - uas
     labels:

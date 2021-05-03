@@ -36,40 +36,152 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.UserServer, error) 
 		grpctransport.ClientBefore(
 			contextValuesToGRPCMetadata(cc.headers)),
 	}
-	var informationEndpoint endpoint.Endpoint
+	var getuserinformationEndpoint endpoint.Endpoint
 	{
-		informationEndpoint = grpctransport.NewClient(
+		getuserinformationEndpoint = grpctransport.NewClient(
 			conn,
 			"user.User",
-			"Information",
-			EncodeGRPCInformationRequest,
-			DecodeGRPCInformationResponse,
-			pb.InformationResponse{},
+			"GetUserInformation",
+			EncodeGRPCGetUserInformationRequest,
+			DecodeGRPCGetUserInformationResponse,
+			pb.GetUserInformationResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var createuserEndpoint endpoint.Endpoint
+	{
+		createuserEndpoint = grpctransport.NewClient(
+			conn,
+			"user.User",
+			"CreateUser",
+			EncodeGRPCCreateUserRequest,
+			DecodeGRPCCreateUserResponse,
+			pb.CreateUserResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var getalluserinformationEndpoint endpoint.Endpoint
+	{
+		getalluserinformationEndpoint = grpctransport.NewClient(
+			conn,
+			"user.User",
+			"GetAllUserInformation",
+			EncodeGRPCGetAllUserInformationRequest,
+			DecodeGRPCGetAllUserInformationResponse,
+			pb.GetAllUserInformationResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var getuserinformationemailEndpoint endpoint.Endpoint
+	{
+		getuserinformationemailEndpoint = grpctransport.NewClient(
+			conn,
+			"user.User",
+			"GetUserInformationEmail",
+			EncodeGRPCGetUserInformationEmailRequest,
+			DecodeGRPCGetUserInformationEmailResponse,
+			pb.GetUserInformationEmailResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var deleteuserEndpoint endpoint.Endpoint
+	{
+		deleteuserEndpoint = grpctransport.NewClient(
+			conn,
+			"user.User",
+			"DeleteUser",
+			EncodeGRPCDeleteUserRequest,
+			DecodeGRPCDeleteUserResponse,
+			pb.DeleteUserResponse{},
 			clientOptions...,
 		).Endpoint()
 	}
 
 	endpoints := svc.NewEndpoints()
-	endpoints.InformationEndpoint = informationEndpoint
+	endpoints.GetUserInformationEndpoint = getuserinformationEndpoint
+	endpoints.CreateUserEndpoint = createuserEndpoint
+	endpoints.GetAllUserInformationEndpoint = getalluserinformationEndpoint
+	endpoints.GetUserInformationEmailEndpoint = getuserinformationemailEndpoint
+	endpoints.DeleteUserEndpoint = deleteuserEndpoint
 
 	return endpoints, nil
 }
 
 // GRPC Client Decode
 
-// DecodeGRPCInformationResponse is a transport/grpc.DecodeResponseFunc that converts a
-// gRPC information reply to a user-domain information response. Primarily useful in a client.
-func DecodeGRPCInformationResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*pb.InformationResponse)
+// DecodeGRPCGetUserInformationResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getuserinformation reply to a user-domain getuserinformation response. Primarily useful in a client.
+func DecodeGRPCGetUserInformationResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetUserInformationResponse)
+	return reply, nil
+}
+
+// DecodeGRPCCreateUserResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC createuser reply to a user-domain createuser response. Primarily useful in a client.
+func DecodeGRPCCreateUserResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.CreateUserResponse)
+	return reply, nil
+}
+
+// DecodeGRPCGetAllUserInformationResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getalluserinformation reply to a user-domain getalluserinformation response. Primarily useful in a client.
+func DecodeGRPCGetAllUserInformationResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetAllUserInformationResponse)
+	return reply, nil
+}
+
+// DecodeGRPCGetUserInformationEmailResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getuserinformationemail reply to a user-domain getuserinformationemail response. Primarily useful in a client.
+func DecodeGRPCGetUserInformationEmailResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetUserInformationEmailResponse)
+	return reply, nil
+}
+
+// DecodeGRPCDeleteUserResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC deleteuser reply to a user-domain deleteuser response. Primarily useful in a client.
+func DecodeGRPCDeleteUserResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.DeleteUserResponse)
 	return reply, nil
 }
 
 // GRPC Client Encode
 
-// EncodeGRPCInformationRequest is a transport/grpc.EncodeRequestFunc that converts a
-// user-domain information request to a gRPC information request. Primarily useful in a client.
-func EncodeGRPCInformationRequest(_ context.Context, request interface{}) (interface{}, error) {
-	req := request.(*pb.InformationRequest)
+// EncodeGRPCGetUserInformationRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getuserinformation request to a gRPC getuserinformation request. Primarily useful in a client.
+func EncodeGRPCGetUserInformationRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetUserInformationRequest)
+	return req, nil
+}
+
+// EncodeGRPCCreateUserRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain createuser request to a gRPC createuser request. Primarily useful in a client.
+func EncodeGRPCCreateUserRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.CreateUserRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetAllUserInformationRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getalluserinformation request to a gRPC getalluserinformation request. Primarily useful in a client.
+func EncodeGRPCGetAllUserInformationRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetAllUserInformationRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetUserInformationEmailRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getuserinformationemail request to a gRPC getuserinformationemail request. Primarily useful in a client.
+func EncodeGRPCGetUserInformationEmailRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetUserInformationEmailRequest)
+	return req, nil
+}
+
+// EncodeGRPCDeleteUserRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain deleteuser request to a gRPC deleteuser request. Primarily useful in a client.
+func EncodeGRPCDeleteUserRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.DeleteUserRequest)
 	return req, nil
 }
 
