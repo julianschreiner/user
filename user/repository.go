@@ -56,10 +56,12 @@ func (r *userRepo) GetActiveUserByEmail(email string) (*User, error) {
 		Active: true,
 	}
 
-	err := r.db.Preload("Groups").Preload("Groups.Permissions").Where(&u).Take(&u).Error
+	err := r.db.Where(&u).Take(&u).Error
 
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
+	} else if err == gorm.ErrRecordNotFound {
+		return nil, nil
 	}
 
 	return &u, nil
@@ -67,7 +69,7 @@ func (r *userRepo) GetActiveUserByEmail(email string) (*User, error) {
 
 func (r *userRepo) GetAllUsers(ctx context.Context, query *User) ([]*User, error) {
 	var users []*User
-	err := r.db.Where(query).Preload("Groups").Find(&users).Error
+	err := r.db.Where(query).Find(&users).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, errors.New("InternalServerError")
 	}
@@ -77,10 +79,12 @@ func (r *userRepo) GetAllUsers(ctx context.Context, query *User) ([]*User, error
 
 func (r *userRepo) GetUserById(ctx context.Context, id uint64) (*User, error) {
 	var u User
-	err := r.db.Preload("Groups").Preload("Groups.Permissions").First(&u, id).Error
+	err := r.db.First(&u, id).Error
 
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, errors.New("NotFound")
+	} else if err == gorm.ErrRecordNotFound {
+		return nil, nil
 	}
 
 	return &u, nil

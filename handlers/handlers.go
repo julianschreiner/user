@@ -101,15 +101,30 @@ func (s userService) GetUserInformation(ctx context.Context, in *pb.GetUserInfor
 		return nil, err
 	}
 
+	if resp == nil {
+		return &pb.GetUserInformationResponse{
+			User: nil,
+		}, nil
+	}
+
 	return &pb.GetUserInformationResponse{
 		User: resp.ToPb(),
 	}, nil
 }
 
 func (s userService) GetUserInformationEmail(ctx context.Context, in *pb.GetUserInformationEmailRequest) (*pb.GetUserInformationEmailResponse, error) {
+	println("received request getUserInformation Email")
+	println("input: " + in.String())
+
 	resp, err := s.userManger.GetActiveUserByEmail(ctx, in.Email)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp == nil {
+		return &pb.GetUserInformationEmailResponse{
+			User: nil,
+		}, nil
 	}
 
 	return &pb.GetUserInformationEmailResponse{
